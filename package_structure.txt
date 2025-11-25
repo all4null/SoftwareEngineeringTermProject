@@ -1,0 +1,24 @@
+src/main/java/com/hellofood/backend
+├── controller (Presentation Layer) <- HTTP 요청을 받아 DTO를 Service로 전달하고 응답을 반환.
+│   ├── AuthController.java
+│   └── OrderController.java
+├── service (Service Layer) <- 핵심 로직 구현(회원가입, 주문.. 기타 등등)
+│   ├── AuthenticationService.java
+│   └── OrderService.java
+├── repository (Persistence Layer) <- 엔티티를 DB에 저장 및 조회
+│   ├── UserRepository.java
+│   └── OrderRepository.java
+└── domain (Domain Layer - 핵심 데이터 구조)
+    ├── user
+    │   ├── User.java
+    │   ├── Customer.java
+    │   └── ...Staff.java
+    └── order  <-- 💡 새로운 하위 패키지
+        ├── Order.java
+        ├── OrderItem.java
+        ├── Cart.java
+        ├── Payment.java
+        └── OrderStatus.java
+    └── inventory <-- 💡 새로운 하위 패키지
+        ├── Inventory.java
+        └── MenuItem.java
