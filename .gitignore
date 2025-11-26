@@ -1,0 +1,14 @@
+# 파이썬 가상환경 및 캐시 제외
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# 녹음된 테스트용 오디오 파일 제외 (용량 차지함)
+*.wav
+*.m4a
+*.mp3
+temp_*
+
+# VS Code 설정 파일 제외
+.vscode/

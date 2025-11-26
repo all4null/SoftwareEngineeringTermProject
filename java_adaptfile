@@ -1,0 +1,20 @@
+// RestTemplate을 사용하여 파이썬 서버로 파일 전송
+public String sendToAiServer(MultipartFile voiceFile) {
+    String aiUrl = "http://localhost:5000/order";
+    
+    RestTemplate restTemplate = new RestTemplate();
+    
+    // 헤더 설정
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+    // 파일 담기
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", new MultipartInputStreamFileResource(voiceFile.getInputStream(), voiceFile.getOriginalFilename()));
+
+    // 요청 보내기
+    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+    ResponseEntity<String> response = restTemplate.postForEntity(aiUrl, requestEntity, String.class);
+
+    return response.getBody(); // 파이썬이 준 JSON이 여기 들어있음
+}
