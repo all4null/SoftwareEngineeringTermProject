@@ -29,6 +29,8 @@
     * `User.java`
     * `Customer.java`
     * `Staff.java`
+    * `KitchenStaff.java`
+    * `DeliveryStaff.java`
 * `domain/order` (💡 **새로운 하위 패키지**)
     * `Order.java`
     * `OrderItem.java`
