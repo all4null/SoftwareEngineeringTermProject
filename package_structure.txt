@@ -9,16 +9,18 @@ src/main/java/com/hellofood/backend
 │   ├── UserRepository.java
 │   └── OrderRepository.java
 └── domain (Domain Layer - 핵심 데이터 구조)
-    ├── user
+    ├── user <-- 사용자 관련 패키지 
     │   ├── User.java
     │   ├── Customer.java
-    │   └── ...Staff.java
-    └── order  <-- 💡 새로운 하위 패키지
+    │   ├── Staff.java
+    │   ├── KitchenStaff.java
+    │   └── DeliveryStaff.java
+    └── order  <-- 주문 관련 패키지
         ├── Order.java
         ├── OrderItem.java
         ├── Cart.java
         ├── Payment.java
         └── OrderStatus.java
-    └── inventory <-- 💡 새로운 하위 패키지
+    └── inventory <-- 재고 관련 패키지
         ├── Inventory.java
         └── MenuItem.java
