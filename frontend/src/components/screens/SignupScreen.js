@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import axios from 'axios'; //백엔드로 요청을 보내기위한 axios 임포트
+
+//백엔드 주소
+const BACKEND_URL = 'http://localhost:8080/api/auth/login';
+
 
 function SignupScreen() {
   const navigate = useNavigate();
@@ -23,7 +28,7 @@ function SignupScreen() {
     }));
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     setError('');
 
     // 유효성 검사
@@ -56,35 +61,53 @@ function SignupScreen() {
       return;
     }
 
-    // 고객 정보 저장
-    const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+    // localStorage활용 가입 로직
+    // // 고객 정보 저장
+    // const customers = JSON.parse(localStorage.getItem('customers') || '[]');
     
-    // 이미 존재하는 이메일 확인
-    if (customers.find(c => c.email === formData.email)) {
-      setError('This email is already registered');
-      return;
+    // // 이미 존재하는 이메일 확인
+    // if (customers.find(c => c.email === formData.email)) {
+    //   setError('This email is already registered');
+    //   return;
+    // }
+
+    // // 새 고객 추가
+    // const newCustomer = {
+    //   id: Date.now(),
+    //   name: formData.name,
+    //   email: formData.email,
+    //   password: formData.password,
+    //   address: formData.address,
+    //   phone: formData.phone,
+    //   registeredAt: new Date().toISOString(),
+    //   totalOrders: 0,
+    //   totalSpent: 0,
+    //   discountRate: 0 // 초기 할인율
+    // };
+
+      // customers.push(newCustomer);
+      // localStorage.setItem('customers', JSON.stringify(customers));
+
+    // 백엔드로 회원가입 정보 전송
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/signup', {
+        id: Date.now(),
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        address: formData.address,
+        phoneNumber: formData.phone,
+        registeredAt: new Date().toISOString(),
+        totalOrders: 0,
+        totalSpent: 0,
+        discountRate: 0 // 초기 할인율
+      });
+      // 회원가입 완료 후 로그인 페이지로 이동
+      alert('Account created successfully! Please log in.');
+      navigate('/customer-login');
+    } catch (error) {
+      console.error('Signup error:', error);
     }
-
-    // 새 고객 추가
-    const newCustomer = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      address: formData.address,
-      phone: formData.phone,
-      registeredAt: new Date().toISOString(),
-      totalOrders: 0,
-      totalSpent: 0,
-      discountRate: 0 // 초기 할인율
-    };
-
-    customers.push(newCustomer);
-    localStorage.setItem('customers', JSON.stringify(customers));
-
-    // 회원가입 완료 후 로그인 페이지로 이동
-    alert('Account created successfully! Please log in.');
-    navigate('/customer-login');
   };
 
   return (

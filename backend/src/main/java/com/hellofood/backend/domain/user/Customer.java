@@ -1,19 +1,26 @@
 package com.hellofood.backend.domain.user;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import com.hellofood.backend.domain.user.User; //User 클래스 호출
 import com.hellofood.backend.domain.order.Order; // Order 클래스 호출
 import com.hellofood.backend.domain.order.Cart; // Cart 클래스 호출
+
+import java.util.Date;
 import java.util.List; //List
 
 
 //JPA 엔티티 지정
 @Entity
 //USERS 테이블에 USER_TYPE 컬럼에 CUSTOMER 값을 가지도록함
-@DiscriminatorValue("customer") 
+@DiscriminatorValue("customer")
 //JOINED 전략으로, USERS(부모)테이블의 PK(ID)와 CUSTOMERS(자식)테이블의 PK를 연결
-@PrimaryKeyJoinColumn(name = "customer_id") 
+@PrimaryKeyJoinColumn(name = "customer_id")
 @Table(name = "customers")
+@Getter //getName, getEmail 등 자동 생성
+@Setter //setPassword 등 자동 생성
 public class Customer extends User { // 추상클래스 User 상속
 
     @Column(length = 255)
@@ -31,8 +38,11 @@ public class Customer extends User { // 추상클래스 User 상속
 
     public Customer() {} //JPA 사용을 위한 기본 생성자
 
-    public Customer(String name, String email, String password, String address, String phoneNumber) {
-        super(name, email, password, phoneNumber);
+    //전체 필드를 초기화하는 생성자
+    public Customer(String name, String email, String password, String address, String phoneNumber, String registeredAt, Integer totalOrders, Integer totalSpent, Integer discountRate) {
+        super(name, email, password, phoneNumber, registeredAt, totalOrders, totalSpent, discountRate);
         this.address = address;
     }
+
+
 }

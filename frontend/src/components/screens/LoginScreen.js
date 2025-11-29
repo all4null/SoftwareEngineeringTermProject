@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import axios from 'axios'; //백엔드로 요청을 보내기위한 axios 임포트
+
+//백엔드 주소
+const BACKEND_URL = 'http://localhost:8080/api/auth/login';
 
 function LoginScreen() {
   const navigate = useNavigate();
@@ -8,7 +12,7 @@ function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
 
     if (!email || !password) {
@@ -16,18 +20,40 @@ function LoginScreen() {
       return;
     }
 
-    // localStorage에서 고객 정보 확인
-    const customers = JSON.parse(localStorage.getItem('customers') || '[]');
-    const customer = customers.find(c => c.email === email && c.password === password);
+    // // localStorage에서 고객 정보 확인
+    // const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+    // const customer = customers.find(c => c.email === email && c.password === password);
 
-    if (customer) {
-      // 로그인 성공 - 현재 로그인한 고객 정보 저장
+    // if (customer) {
+    //   // 로그인 성공 - 현재 로그인한 고객 정보 저장
+    //   localStorage.setItem('currentUser', JSON.stringify(customer));
+    //   localStorage.setItem('userRole', 'customer');
+    //   navigate('/dashboard');
+    // } else {
+    //   setError('Invalid email or password');
+    // }
+
+    // 백엔드로 요청을 보내 확인하기
+    try {
+      const response = await axios.post(BACKEND_URL, {
+        email: email,
+        password: password
+      });
+
+      console.log('Login response:', response);
+      const customer = response.data; //백엔드에서 반환된 고객 정보 저장
+      //현재 로그인한 고객 정보 저장
       localStorage.setItem('currentUser', JSON.stringify(customer));
       localStorage.setItem('userRole', 'customer');
+
       navigate('/dashboard');
-    } else {
-      setError('Invalid email or password');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred during login. Please try again.');
+      return;
     }
+
+
   };
 
   const handleKeyPress = (e) => {
