@@ -4,6 +4,7 @@ import com.hellofood.backend.domain.order.*;
 import com.hellofood.backend.domain.user.Customer;
 import com.hellofood.backend.domain.user.User;
 import com.hellofood.backend.dto.order.OrderRequestDto;
+import com.hellofood.backend.dto.order.OrderResponseDto;
 import com.hellofood.backend.repository.MenuItemRepository;
 import com.hellofood.backend.repository.OrderRepository;
 import com.hellofood.backend.repository.CustomerRepository;
@@ -14,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +52,8 @@ public class OrderService {
             0, // request count (임시)
             Order.OrderStatus.CONFIRMED,
             BigDecimal.ZERO, // 나중에 업데이트
-            (Customer) user // 캐스팅 필요 (설계에 따라 다름)
+            (Customer) user, // 캐스팅 필요 (설계에 따라 다름)
+            request.getDinnerType()
         );
 
         // 4. OrderItem 생성 및 가격 계산
@@ -88,5 +92,19 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return savedOrder.getOrderId(); // 생성된 주문의 ID 반환
+    }
+
+    public List<OrderResponseDto> getOrders(Long customerId) {
+        return orderRepository.findAllByCustomerId(customerId)
+        .stream()
+        .map(OrderResponseDto::new)
+        .collect(Collectors.toList());
+    }
+
+    public void deleteOrder(Long orderId) {
+        if(!orderRepository.existsById(orderId)) {
+            throw new IllegalArgumentException("Invalid order ID"+orderId);
+        }
+        orderRepository.deleteById(orderId);
     }
 }

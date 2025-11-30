@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import axios from 'axios';
 
 function CustomerHomeScreen() {
   const navigate = useNavigate();
@@ -13,33 +14,20 @@ function CustomerHomeScreen() {
     loadCustomerData();
   }, []);
 
-  const loadCustomerData = () => {
-    // customers 데이터에서 최신 고객 정보 가져오기
-    const customers = JSON.parse(localStorage.getItem('customers') || '[]');
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+  const loadCustomerData = async () => {
     
-    // 현재 localStorage에 저장된 정보 불러오기 추가한거
+    const user = JSON.parse(localStorage.getItem('currentUser'));
     setCurrentUser(user);
 
-    if (user && customers.length > 0) {
-      // customers 배열에서 현재 고객 찾기
-      const updatedUser = customers.find(c => c.id === user.id);
-      
-      if (updatedUser) {
-        setCurrentUser(updatedUser);
-
-        // 이 고객의 현재 주문들 가져오기 (보여주기용)
-        const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-        const userOrders = allOrders
-          .filter(order => order.customerId === user.id)
-          .sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime));
-
-        setOrders(userOrders);
-
-        // 고객의 totalOrders로 등급 계산
-        const tier = calculateTier(updatedUser.totalOrders || 0);
-        setCustomerTier(tier);
-      }
+    try {
+    const response = await axios.get(`http://localhost:8080/api/orders?customerId=${user.id}`);
+    setOrders(response.data); // 받아온 데이터를 상태에 저장
+    
+    // 등급 계산 (주문 개수 기반)
+    const tier = calculateTier(response.data.length);
+    setCustomerTier(tier);
+    } catch (error) {
+        console.error("Failed to load orders", error);
     }
   };
 
@@ -57,25 +45,28 @@ function CustomerHomeScreen() {
     }
   };
 
-  const handleDeleteOrder = (orderId) => {
-    // 기존 주문들 가져오기
-    const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    
-    // 해당 주문 삭제
-    const updatedOrders = allOrders.filter(order => order.id !== orderId);
-    
-    // localStorage에 저장
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+  const handleDeleteOrder = async (orderId) => {
+    // 1. 사용자에게 진짜 지울 건지 한 번 물어보는 게 국룰 (UX)
+    if (!window.confirm("Are you sure you want to delete this order?")) {
+        setSwipedOrderId(null); // 취소하면 스와이프 상태만 원복
+        return;
+    }
 
-    // UI 업데이트 (삭제된 주문은 보여주지 않음)
-    const userOrders = updatedOrders.filter(order => order.customerId === currentUser.id).sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime));
-    setOrders(userOrders);
+    try {
+        // 2. 백엔드에 삭제 요청 전송 (DELETE)
+        await axios.delete(`http://localhost:8080/api/orders/${orderId}`);
 
-    // totalOrders는 유지 (삭제해도 줄어들지 않음)
-    // customerTier도 변하지 않음
-    
-    setSwipedOrderId(null);
-    alert('Order deleted successfully!');
+        // 3. 성공하면 프론트엔드 화면 목록에서도 제거 (새로고침 없이 즉시 반영)
+        setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+        
+        // 부가적인 상태 초기화
+        setSwipedOrderId(null);
+        alert('Order deleted successfully!');
+
+    } catch (error) {
+        console.error("Failed to delete order", error);
+        alert("Failed to delete order. Please try again.");
+    }
   };
 
   const dinners = [
@@ -113,6 +104,18 @@ function CustomerHomeScreen() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('userRole');
     navigate('/');
+  };
+
+  // dinnerType 코드를 받아서 예쁜 이름으로 바꿔주는 함수
+  const getDinnerName = (type) => {
+    const names = {
+      'valentine': 'Valentine Dinner 💕',
+      'french': 'French Dinner 🇫🇷',
+      'english': 'English Dinner 🇬🇧',
+      'champagne': 'Champagne Feast 🥂'
+    };
+    // 목록에 없으면(예: 오타) 그냥 원래 type을 보여주거나 기본값 설정
+    return names[type] || 'Delicious Dinner 🍽️';
   };
 
   return (
@@ -442,7 +445,7 @@ function CustomerHomeScreen() {
                       color: '#FFFFFF',
                       marginBottom: '5px'
                     }}>
-                      {order.dinnerName}
+                      {getDinnerName(order.dinnerName)}
                     </h3>
                     <p style={{
                       fontSize: '12px',
