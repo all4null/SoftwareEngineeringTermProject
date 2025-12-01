@@ -48,9 +48,16 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @Column(nullable = false)
-    private BigDecimal totalPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPrice; // 할인 후 최종 결제 금액
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    //적용된 할인율 (예: 15 퍼센트)
+    @Column(nullable = false)
+    private Integer discountRate = 0;
+    
     // OrderItem 목록 추가 및 양방향 관계 설정
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>(); // import java.util.List, java.util.ArrayList

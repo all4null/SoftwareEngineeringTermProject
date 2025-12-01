@@ -20,30 +20,44 @@ function CustomerHomeScreen() {
     setCurrentUser(user);
 
     try {
+    // 고객의 모든 주문 불러오기, 백엔드의 OrderListResponseDTO 사용
     const response = await axios.get(`http://localhost:8080/api/orders?customerId=${user.id}`);
     setOrders(response.data); // 받아온 데이터를 상태에 저장
     
-    // 등급 계산 (주문 개수 기반)
-    const tier = calculateTier(response.data.length);
-    setCustomerTier(tier);
-    } catch (error) {
-        console.error("Failed to load orders", error);
-    }
-  };
+    // 고객 등급 정보 불러오기
+    const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
+    const customerTierData = customerTierRes.data;
+    setCustomerTier({
+        name: customerTierData.tierName,       // 예: "GOLD"
+        discountRate: customerTierData.discountRate, // 예: 15
+        icon: customerTierData.tierIcon        // 예: "🥇"
+      });
+    
 
-  const calculateTier = (orderCount) => {
-    if (orderCount >= 20) {
-      return { name: 'Platinum', discountRate: 20, icon: '💎' };
-    } else if (orderCount >= 15) {
-      return { name: 'Gold', discountRate: 15, icon: '🥇' };
-    } else if (orderCount >= 10) {
-      return { name: 'Silver', discountRate: 10, icon: '🥈' };
-    } else if (orderCount >= 5) {
-      return { name: 'Bronze', discountRate: 5, icon: '🥉' };
-    } else {
-      return { name: 'Regular', discountRate: 0, icon: '👤' };
+    // // 등급 계산 (주문 개수 기반)
+    // const tier = calculateTier(response.data.length);
+    // setCustomerTier(tier);
+    // } catch (error) {
+    //     console.error("Failed to load orders", error);
+    // }
+  } catch (error) {
+      console.error("Failed to load customer data", error);
     }
-  };
+};
+
+  // const calculateTier = (orderCount) => {
+  //   if (orderCount >= 20) {
+  //     return { name: 'Platinum', discountRate: 20, icon: '💎' };
+  //   } else if (orderCount >= 15) {
+  //     return { name: 'Gold', discountRate: 15, icon: '🥇' };
+  //   } else if (orderCount >= 10) {
+  //     return { name: 'Silver', discountRate: 10, icon: '🥈' };
+  //   } else if (orderCount >= 5) {
+  //     return { name: 'Bronze', discountRate: 5, icon: '🥉' };
+  //   } else {
+  //     return { name: 'Regular', discountRate: 0, icon: '👤' };
+  //   }
+  // };
 
   const handleDeleteOrder = async (orderId) => {
     // 1. 사용자에게 진짜 지울 건지 한 번 물어보는 게 국룰 (UX)
@@ -58,7 +72,7 @@ function CustomerHomeScreen() {
 
         // 3. 성공하면 프론트엔드 화면 목록에서도 제거 (새로고침 없이 즉시 반영)
         setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
-        
+        loadCustomerData(); //다시 정보 로딩
         // 부가적인 상태 초기화
         setSwipedOrderId(null);
         alert('Order deleted successfully!');
@@ -203,7 +217,7 @@ function CustomerHomeScreen() {
             )}
 
             <p style={{ fontSize: '11px', color: '#b0b0b0', marginTop: '12px' }}>
-              📊 Total Orders: {currentUser?.totalOrders || 0}
+              📊 Total Orders: {orders.length || 0}
             </p>
           </div>
         )}

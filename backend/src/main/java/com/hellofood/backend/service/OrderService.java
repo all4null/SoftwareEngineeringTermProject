@@ -2,9 +2,11 @@ package com.hellofood.backend.service;
 
 import com.hellofood.backend.domain.order.*;
 import com.hellofood.backend.domain.user.Customer;
+import com.hellofood.backend.domain.user.CustomerTier;
 import com.hellofood.backend.domain.user.User;
 import com.hellofood.backend.dto.order.OrderRequestDto;
 import com.hellofood.backend.dto.order.OrderResponseDto;
+import com.hellofood.backend.dto.order.OrderListResponseDto;
 import com.hellofood.backend.repository.MenuItemRepository;
 import com.hellofood.backend.repository.OrderRepository;
 import com.hellofood.backend.repository.CustomerRepository;
@@ -87,17 +89,39 @@ public class OrderService {
             order.addOrderItem(orderItem);
         }
 
-        // 5. 총 가격 업데이트 및 저장
-        order.setTotalPrice(totalPrice);
+        // 5. 할인 관련 로직
+        
+        // A. 고객의 이전 주문 횟수 조회
+        int orderCount = orderRepository.countByCustomer((Customer) user);
+        
+        // B. 등급(Tier) 계산 - ★ 여기서 만들어둔 로직 재사용!
+        // (일일이 if문 쓸 필요 없이, 계산기한테 횟수만 던져주면 알아서 등급을 줍니다)
+        CustomerTier tier = CustomerTier.calculateTier(orderCount);
+        int discountRate = tier.getDiscountRate(); // 등급에서 할인율 꺼내기
+        
+        // C. 할인 금액 계산: (총 금액 * 할인율) / 100
+        BigDecimal discountAmount = totalPrice
+                .multiply(BigDecimal.valueOf(discountRate))
+                .divide(BigDecimal.valueOf(100));
+
+        // D. 최종 가격 반영: 총 금액 - 할인 금액
+        BigDecimal finalPrice = totalPrice.subtract(discountAmount);
+
+        // E. 주문 정보에 저장
+        order.setDiscountRate(discountRate);
+        order.setDiscountAmount(discountAmount);
+        order.setTotalPrice(finalPrice);
+
+        // 6. 주문 저장
         Order savedOrder = orderRepository.save(order);
 
         return savedOrder.getOrderId(); // 생성된 주문의 ID 반환
     }
 
-    public List<OrderResponseDto> getOrders(Long customerId) {
+    public List<OrderListResponseDto> getOrders(Long customerId) {
         return orderRepository.findAllByCustomerId(customerId)
         .stream()
-        .map(OrderResponseDto::new)
+        .map(OrderListResponseDto::new)
         .collect(Collectors.toList());
     }
 
@@ -106,5 +130,12 @@ public class OrderService {
             throw new IllegalArgumentException("Invalid order ID"+orderId);
         }
         orderRepository.deleteById(orderId);
+    }
+
+    // 주문 상세 조회
+    public OrderResponseDto getOrderDetails(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        return new OrderResponseDto(order);
     }
 }

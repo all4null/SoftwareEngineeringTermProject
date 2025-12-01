@@ -2,6 +2,7 @@ package com.hellofood.backend.controller;
 
 import com.hellofood.backend.dto.order.OrderRequestDto;
 import com.hellofood.backend.dto.order.OrderResponseDto;
+import com.hellofood.backend.dto.order.OrderListResponseDto;
 import com.hellofood.backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,8 +25,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderResponseDto>> getOrders(@RequestParam Long customerId) {
-        List<OrderResponseDto> orders = orderService.getOrders(customerId);
+    public ResponseEntity<List<OrderListResponseDto>> getOrders(@RequestParam Long customerId) {
+        List<OrderListResponseDto> orders = orderService.getOrders(customerId);
         return ResponseEntity.ok(orders);
     }
 
@@ -34,6 +35,14 @@ public class OrderController {
         orderService.deleteOrder(orderId);
         // 204 No Content 반환 (성공적으로 지웠고, 돌려줄 데이터는 없다는 뜻)
         return ResponseEntity.noContent().build();
+    }
+
+
+    //주문 상세 조회
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponseDto> getOrderDetails(@PathVariable Long orderId) {
+        OrderResponseDto order = orderService.getOrderDetails(orderId);
+        return ResponseEntity.ok(order);
     }
 
 }

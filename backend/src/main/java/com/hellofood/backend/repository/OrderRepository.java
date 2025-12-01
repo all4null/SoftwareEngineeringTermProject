@@ -19,4 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> { //인터�
 
     //삭제
     void deleteById(Long orderId);
+
+    //특정 고객의 주문 수 세기
+    int countByCustomer(Customer customer);
 }

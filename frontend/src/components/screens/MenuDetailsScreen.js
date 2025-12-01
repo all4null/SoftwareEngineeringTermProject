@@ -12,23 +12,31 @@ function MenuDetailsScreen() {
   const [style, setStyle] = useState('grand');
   const [discountRate, setDiscountRate] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
+  const [customerTier, setCustomerTier] = useState(null);
   
   // [변경 1] "바로 주문"을 위해 기본 구성품 아이템들의 ID가 필요함
-  const [defaultItems, setDefaultItems] = useState([]); 
+  const [defaultItems, setDefaultItems] = useState([]);
 
   useEffect(() => {
-    // 1. 로그인 정보 확인 (LocalStorage 유지)
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user) {
-      setCurrentUser(user);
-      // (참고: 실제로는 백엔드에서 사용자 등급/할인율을 가져와야 하지만, 
-      //  아직 해당 API가 없으므로 로컬스토리지 로직을 유지하거나 0으로 둡니다.)
-      //  여기서는 UI 깨짐 방지를 위해 로컬 계산 로직을 잠시 유지합니다.
-      const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const userOrders = allOrders.filter(order => order.customerId === user.id);
-      const tier = calculateTier(userOrders.length);
-      setDiscountRate(tier.discountRate);
+    setCurrentUser(user);
+
+    const loadCustomerTierData = async () => {
+    try {
+    // 고객 등급 정보 불러오기
+    const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
+    const customerTierData = customerTierRes.data;
+    setCustomerTier({
+        name: customerTierData.tierName,       // 예: "GOLD"
+        discountRate: customerTierData.discountRate, // 예: 15
+        icon: customerTierData.tierIcon        // 예: "🥇"
+      });
+    setDiscountRate(customerTierData.discountRate);
+    } catch (error) {
+      console.error("Failed to load customer data", error);
     }
+  };
+  loadCustomerTierData();
 
     // [변경 2] 백엔드에서 해당 디너의 "기본 구성품" ID 목록 가져오기
     const fetchDefaultItems = async () => {
@@ -40,18 +48,19 @@ function MenuDetailsScreen() {
       } catch (error) {
         console.error("Failed to load default items", error);
       }
+      
     };
     fetchDefaultItems();
 
   }, [dinnerType]);
 
-  const calculateTier = (orderCount) => {
-    if (orderCount >= 20) return { name: 'Platinum', discountRate: 20, icon: '💎' };
-    else if (orderCount >= 15) return { name: 'Gold', discountRate: 15, icon: '🥇' };
-    else if (orderCount >= 10) return { name: 'Silver', discountRate: 10, icon: '🥈' };
-    else if (orderCount >= 5) return { name: 'Bronze', discountRate: 5, icon: '🥉' };
-    else return { name: 'Regular', discountRate: 0, icon: '👤' };
-  };
+  // const calculateTier = (orderCount) => {
+  //   if (orderCount >= 20) return { name: 'Platinum', discountRate: 20, icon: '💎' };
+  //   else if (orderCount >= 15) return { name: 'Gold', discountRate: 15, icon: '🥇' };
+  //   else if (orderCount >= 10) return { name: 'Silver', discountRate: 10, icon: '🥈' };
+  //   else if (orderCount >= 5) return { name: 'Bronze', discountRate: 5, icon: '🥉' };
+  //   else return { name: 'Regular', discountRate: 0, icon: '👤' };
+  // };
 
   // [UI용 데이터] 아이콘, 설명, 스타일별 가격 등은 DB에 없으므로 프론트에서 관리
   const dinnerDetails = {

@@ -14,6 +14,9 @@ function OrderCustomizationScreen() {
   const [availableAddons, setAvailableAddons] = useState([]);
   const [addedItems, setAddedItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [discountRate, setDiscountRate] = useState(0);
+  const [customerTier, setCustomerTier] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // 디너 기본 정보 (이름, 아이콘은 DB에 없으므로 프론트 유지)
   const dinnerInfo = {
@@ -64,8 +67,28 @@ function OrderCustomizationScreen() {
       } finally {
         setLoading(false);
       }
-    };
 
+    }
+
+    const loadCustomerTierData = async () => {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      setCurrentUser(user);
+      try {
+      // 고객 등급 정보 불러오기
+      const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
+      const customerTierData = customerTierRes.data;
+      setCustomerTier({
+          name: customerTierData.tierName,       // 예: "GOLD"
+          discountRate: customerTierData.discountRate, // 예: 15
+          icon: customerTierData.tierIcon        // 예: "🥇"
+        });
+      setDiscountRate(customerTierData.discountRate);
+      } catch (error) {
+        console.error("Failed to load customer data", error);
+      }
+    };
+  
+    loadCustomerTierData();
     fetchMenuData();
   }, [dinnerType]);
 
@@ -136,7 +159,12 @@ function OrderCustomizationScreen() {
   };
 
   const addOnPrice = calculateAddOnPrice();
-  const totalPrice = (basePrice + addOnPrice).toFixed(2);
+  const subTotal = basePrice + addOnPrice; // 할인 전 금액
+  const discountAmount = subTotal * (discountRate / 100); // 할인 금액
+  const finalPrice = subTotal - discountAmount; // 최종 금액
+  
+  const totalPrice = finalPrice.toFixed(2); // 화면 표시용
+
   const addedItemsList = getAddedItemsList();
   const hasCustomizations = items.some(item => item.quantity !== 1) || addedItems.length > 0;
 
@@ -189,6 +217,13 @@ function OrderCustomizationScreen() {
           <p style={{ fontSize: '12px', color: '#b0b0b0', marginBottom: '5px' }}>Base Price (fixed):</p>
           <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFC107' }}>${basePrice}</p>
         </div>
+
+        {discountRate > 0 && (
+          <div style={{ backgroundColor: '#2a2a2a', borderRadius: '10px', padding: '12px', marginBottom: '15px', borderLeft: '4px solid #4CAF50', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: '#4CAF50', fontWeight: 'bold', marginBottom: '5px' }}>🎁 Loyalty Discount Applied</p>
+            <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFC107' }}>{discountRate}% OFF</p>
+          </div>
+        )}
 
         {/* 📋 기본 구성품 */}
         <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFFFFF', marginBottom: '15px' }}>📋 Included Items:</h2>
@@ -245,6 +280,16 @@ function OrderCustomizationScreen() {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}><span style={{ color: '#b0b0b0' }}>Base Price:</span><span style={{ color: '#FFF' }}>${basePrice}</span></div>
           {addOnPrice > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}><span style={{ color: '#b0b0b0' }}>Extra Items:</span><span style={{ color: '#FFC107' }}>+${addOnPrice.toFixed(2)}</span></div>}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '20px', fontWeight: 'bold' }}><span style={{ color: '#b0b0b0' }}>Total:</span><span style={{ color: '#FFC107' }}>${totalPrice}</span></div>
+          {/* 할인시 할인 내역 */}
+          {discountRate > 0 && (
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #3a3a3a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '12px' }}>
+                {/*원래가격*/}<span style={{ color: '#b0b0b0' }}>Original: ${(subTotal).toFixed(2)}</span>
+                {/*할인된가격*/}<span style={{ color: '#4CAF50' }}>-${(discountAmount).toFixed(2)}</span>
+              </div>
+              <p style={{ fontSize: '11px', color: '#4CAF50', fontWeight: 'bold' }}>✓ {discountRate}% Loyalty discount applied</p>
+            </div>
+          )}
         </div>
 
         <button onClick={handleConfirmOrder} style={{ width: '100%', padding: '15px', borderRadius: '10px', backgroundColor: '#FFC107', border: 'none', fontWeight: 'bold', fontSize: '16px', marginBottom: '10px', cursor:'pointer' }}>Confirm Order</button>

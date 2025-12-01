@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import axios from 'axios';
 
 function ProfileScreen() {
   const navigate = useNavigate();
@@ -11,33 +12,39 @@ function ProfileScreen() {
   const [editData, setEditData] = useState({});
 
   useEffect(() => {
+    loadCustomerData();
+    }, []);
+
+    const loadCustomerData = async () => {
+    
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user) {
-      setCurrentUser(user);
-      setEditData(user);
+    setCurrentUser(user);
 
-      const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const userOrders = allOrders.filter(order => order.customerId === user.id);
-      setOrders(userOrders);
+    try {
+    // 고객의 모든 주문 불러오기, 백엔드의 OrderListResponseDTO 사용
+    const response = await axios.get(`http://localhost:8080/api/orders?customerId=${user.id}`);
+    setOrders(response.data); // 받아온 데이터를 상태에 저장
+    
+    // 고객 등급 정보 불러오기
+    const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
+    const customerTierData = customerTierRes.data;
+    setCustomerTier({
+        name: customerTierData.tierName,       // 예: "GOLD"
+        discountRate: customerTierData.discountRate, // 예: 15
+        icon: customerTierData.tierIcon        // 예: "🥇"
+      });
+    
 
-      const tier = calculateTier(userOrders.length);
-      setCustomerTier(tier);
+    // // 등급 계산 (주문 개수 기반)
+    // const tier = calculateTier(response.data.length);
+    // setCustomerTier(tier);
+    // } catch (error) {
+    //     console.error("Failed to load orders", error);
+    // }
+  } catch (error) {
+      console.error("Failed to load customer data", error);
     }
-  }, []);
-
-  const calculateTier = (orderCount) => {
-    if (orderCount >= 20) {
-      return { name: 'Platinum', discountRate: 20, icon: '💎' };
-    } else if (orderCount >= 15) {
-      return { name: 'Gold', discountRate: 15, icon: '🥇' };
-    } else if (orderCount >= 10) {
-      return { name: 'Silver', discountRate: 10, icon: '🥈' };
-    } else if (orderCount >= 5) {
-      return { name: 'Bronze', discountRate: 5, icon: '🥉' };
-    } else {
-      return { name: 'Regular', discountRate: 0, icon: '👤' };
-    }
-  };
+};
 
   const handleSaveProfile = () => {
     // 고객 정보 업데이트
