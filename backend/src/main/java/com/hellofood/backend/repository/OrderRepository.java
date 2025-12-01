@@ -1,6 +1,7 @@
 package com.hellofood.backend.repository;
 
 import com.hellofood.backend.domain.order.Order;
+import com.hellofood.backend.domain.order.Order.OrderStatus;
 import com.hellofood.backend.domain.user.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,4 +23,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> { //인터�
 
     //특정 고객의 주문 수 세기
     int countByCustomer(Customer customer);
+
+    // 상태(WAITING, COOKING 등)로 주문 목록을 찾는 메서드 (JPA가 알아서 구현해줌)
+    List<Order> findByStatus(OrderStatus status);
+
+    List<Order> findAll();
 }

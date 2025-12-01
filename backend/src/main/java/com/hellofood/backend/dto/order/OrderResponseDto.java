@@ -22,6 +22,9 @@ public class OrderResponseDto {
     // [추가] 원래 가격 (프론트엔드 표시용)
     private BigDecimal originalPrice;   // (예: 100.00)
 
+    // [추가] 주문자 이름 필드
+    private String customerName;
+
     // [추가] 주문한 아이템 목록
     private List<ItemDto> items;
 
@@ -47,6 +50,14 @@ public class OrderResponseDto {
 
         // [핵심] 원래 가격 = 최종 가격 + 할인 금액
         this.originalPrice = this.totalPrice.add(this.discountAmount);
+
+        // [핵심] Order 엔티티에서 getCustomer()를 호출하여 Customer 객체에 접근한 뒤, 이름을 가져옵니다.
+        // 주의: Customer 클래스에 getName() (또는 이름을 반환하는 메서드)이 있어야 합니다.
+        if (order.getCustomer() != null) {
+            this.customerName = order.getCustomer().getName();
+        } else {
+            this.customerName = "알 수 없음"; // 만약의 경우를 대비한 처리
+        }
 
         // [추가] OrderItem 엔티티들을 DTO로 변환하여 리스트에 담기
         this.items = order.getOrderItems().stream()

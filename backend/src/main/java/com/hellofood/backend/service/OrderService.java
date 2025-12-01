@@ -52,7 +52,7 @@ public class OrderService {
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
             request.getDeliveryAddress(),
             0, // request count (임시)
-            Order.OrderStatus.CONFIRMED,
+            Order.OrderStatus.pending, // 초기 상태
             BigDecimal.ZERO, // 나중에 업데이트
             (Customer) user, // 캐스팅 필요 (설계에 따라 다름)
             request.getDinnerType()

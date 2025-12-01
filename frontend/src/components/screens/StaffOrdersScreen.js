@@ -23,7 +23,7 @@ function StaffOrdersScreen() {
     fetchOrders();
     
     // ⏰ 5초마다 자동으로 새 주문 확인
-    const interval = setInterval(fetchOrders, 5000);
+    const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -37,12 +37,12 @@ function StaffOrdersScreen() {
       
       // ✅ Backend에서 모든 주문 조회
       const response = await axios.get(
-        'http://localhost:8080/api/orders'
+        'http://localhost:8080/api/staff-orders'
       );
       
       // 받은 주문 데이터 저장
       const fetchedOrders = Array.isArray(response.data) 
-        ? response.data 
+        ? response.data
         : response.data.orders || [];
       
       setOrders(fetchedOrders);
@@ -68,7 +68,7 @@ function StaffOrdersScreen() {
       
       // ✅ Backend에 상태 업데이트 요청
       await axios.patch(
-        `http://localhost:8080/api/orders/${orderId}/status`,
+        `http://localhost:8080/api/staff-orders/${orderId}/status`,
         { status: newStatus }
       );
       

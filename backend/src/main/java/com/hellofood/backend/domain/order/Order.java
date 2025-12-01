@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 @Entity
 @Table(name = "orders")
 @Getter
@@ -37,13 +36,33 @@ public class Order {
     private String dinnerType;
 
     public enum OrderStatus {
-    CONFIRMED, // 주문 접수: 고객이 주문을 완료한 초기 상태
-    PREPARING, // 준비 중: 주방 스태프가 요리를 준비하는 중
-    OUT_FOR_DELIVERY, // 배달 중: 라이더가 음식을 픽업하여 배달하는 중
-    DELIVERED, // 배달 완료: 고객에게 최종 전달됨
-    CANCELLED // 주문 취소: 고객 또는 시스템에 의해 취소됨
-    }
+    pending("pending"), // 주문 접수: 고객이 주문을 완료한 초기 상태
+    inProgress("in-progress"), // 준비 중: 주방 스태프가 요리를 준비하는 중
+    ready("ready"), // 준비완료: 요리 준비완료+라이더가 음식을 픽업하여 배달하는 중
+    delivered("delivered"), // 배달 완료: 고객에게 최종 전달됨
+    cancelled("cancelled"); // 주문 취소: 고객 또는 시스템에 의해 취소됨
+    
+    // 2. 문자열을 저장할 필드 선언
+    private final String label;
 
+    // 3. 생성자 (Enum 생성 시 자동으로 호출됨)
+    OrderStatus(String label) {
+        this.label = label;
+    }
+    
+    // 4. 문자열(in-progress)로 Enum(PREPARING)을 찾는 메서드 추가 (필살기)
+        public static OrderStatus fromLabel(String text) {
+            for (OrderStatus status : OrderStatus.values()) {
+                // "in-progress" 와 들어온 텍스트가 같으면 -> PREPARING 리턴
+                if (status.label.equalsIgnoreCase(text)) {
+                    return status;
+                }
+            }
+            // 못 찾으면 기본값 리턴 (혹은 에러)
+            return null;
+        }
+    }
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;

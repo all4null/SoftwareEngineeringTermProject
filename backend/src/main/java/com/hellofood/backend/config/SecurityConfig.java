@@ -10,9 +10,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity // (선택 사항이지만 명확성을 위해 추가)
@@ -29,7 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             // CORS 활성화 및 설정 등록 (아래 corsConfigurationSource 빈 사용)
-            .cors(Customizer.withDefaults()) 
+            .cors(Customizer.withDefaults())
             
             // API 서버이므로 HTTP Basic, CSRF 비활성화
             .httpBasic(AbstractHttpConfigurer::disable)
@@ -41,7 +38,7 @@ public class SecurityConfig {
             // 인가(Authorization) 설정
             .authorizeHttpRequests(auth -> auth
                 // 모든 경로 인증 없이 허용 (개발용)
-                .anyRequest().permitAll() 
+                .anyRequest().permitAll()
             );
 
         return http.build();

@@ -18,12 +18,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    //Order 생성
     @PostMapping
     public ResponseEntity<Long> confirmOrder(@RequestBody OrderRequestDto request) {
         Long orderId = orderService.createOrder(request);
         return ResponseEntity.ok(orderId);
     }
 
+    //Cutomser 개인 주문 목록 조회
     @GetMapping
     public ResponseEntity<List<OrderListResponseDto>> getOrders(@RequestParam Long customerId) {
         List<OrderListResponseDto> orders = orderService.getOrders(customerId);
