@@ -15,9 +15,9 @@ import MenuDetailsScreen from './components/screens/MenuDetailsScreen';
 import OrderDetailsScreen from './components/screens/OrderDetailsScreen';
 import StaffOrdersScreen from './components/screens/StaffOrdersScreen';
 import StaffInventoryScreen from './components/screens/StaffInventoryScreen';
-import StaffDeliveryScreen from './components/screens/StaffDeliveryScreen';
+//import StaffDeliveryScreen from './components/screens/StaffDeliveryScreen';
 import StaffTeamScreen from './components/screens/StaffTeamScreen';
-import StaffAnalyticsScreen from './components/screens/StaffAnalyticsScreen';
+//import StaffAnalyticsScreen from './components/screens/StaffAnalyticsScreen';
 import StaffLiquorScreen from './components/screens/StaffLiquorScreen';
 import OrderCustomizationScreen from './components/screens/OrderCustomizationScreen';
 import SignupScreen from './components/screens/SignupScreen';
@@ -233,9 +233,9 @@ function App() {
         {/* Staff 상세 화면들 */}
         <Route path="/staff-orders" element={<StaffOrdersScreen />} />
         <Route path="/staff-inventory" element={<StaffInventoryScreen />} />
-        <Route path="/staff-delivery" element={<StaffDeliveryScreen />} />
+        {/*<Route path="/staff-delivery" element={<StaffDeliveryScreen />} />*/}
         <Route path="/staff-team" element={<StaffTeamScreen />} />
-        <Route path="/staff-analytics" element={<StaffAnalyticsScreen />} />
+        {/*<Route path="/staff-analytics" element={<StaffAnalyticsScreen />} />*/}
         <Route path="/staff-liquor" element={<StaffLiquorScreen />} />
         <Route path="/customize-order/:dinnerType" element={<OrderCustomizationScreen />} />
         <Route path="/signup" element={<SignupScreen />} />

@@ -18,24 +18,32 @@ function StaffHomeScreen() {
       description: 'Check stock levels',
       path: '/staff-inventory'
     },
+
+    /* 사용 안 함
     {
       icon: '🗺️',
       title: 'Delivery Tracking',
       description: 'Track active deliveries',
       path: '/staff-delivery'
     },
+    */
+
     {
       icon: '👥',
       title: 'Staff Management',
       description: 'Manage kitchen & delivery staff',
       path: '/staff-team'
     },
+
+    /* 사용 안 함
     {
       icon: '📈',
       title: 'Analytics & Reports',
       description: 'View sales and performance',
       path: '/staff-analytics'
     },
+    */
+   
     {
       icon: '🍷',
       title: 'Liquor Store Integration',
@@ -76,91 +84,8 @@ function StaffHomeScreen() {
               Restaurant Management
             </p>
           </div>
-          <div style={{ fontSize: '32px' }}>🏢</div>
         </div>
-
-        {/* 통계 섹션 */}
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginBottom: '30px'
-        }}>
-          {/* Pending Orders */}
-          <div style={{
-            flex: 1,
-            backgroundColor: '#2a2a2a',
-            borderRadius: '15px',
-            padding: '15px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📦</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#FFC107',
-              marginBottom: '5px'
-            }}>
-              5
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#b0b0b0'
-            }}>
-              Pending Orders
-            </div>
-          </div>
-
-          {/* In Progress */}
-          <div style={{
-            flex: 1,
-            backgroundColor: '#2a2a2a',
-            borderRadius: '15px',
-            padding: '15px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚚</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#FFC107',
-              marginBottom: '5px'
-            }}>
-              3
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#b0b0b0'
-            }}>
-              In Progress
-            </div>
-          </div>
-
-          {/* Completed */}
-          <div style={{
-            flex: 1,
-            backgroundColor: '#2a2a2a',
-            borderRadius: '15px',
-            padding: '15px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#FFC107',
-              marginBottom: '5px'
-            }}>
-              24
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#b0b0b0'
-            }}>
-              Completed
-            </div>
-          </div>
-        </div>
-
+      
         {/* Quick Actions */}
         <h2 style={{
           fontSize: '20px',

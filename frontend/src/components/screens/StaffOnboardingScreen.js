@@ -11,11 +11,12 @@ function StaffOnboardingScreen() {
       title: 'Order Management',
       description: 'Staff can receive and process customer orders in real time.'
     },
-    {
+    
+    /*{
       icon: '📈',
       title: 'Delivery Tracking',
       description: 'Shows delivery progress and estimated times.'
-    },
+    },*/
     {
       icon: '🍽️',
       title: 'Inventory & Stock Management',
@@ -31,11 +32,12 @@ function StaffOnboardingScreen() {
       title: 'Staff Management',
       description: 'Manage delivery personnel and kitchen staff schedules.'
     },
+    /*
     {
       icon: '📊',
       title: 'Analytics & Reports',
       description: 'View sales reports, popular dishes, and staff performance metrics.'
-    }
+    }*/
   ];
 
   return (

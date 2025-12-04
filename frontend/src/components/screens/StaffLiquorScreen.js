@@ -1,10 +1,82 @@
-import React, { useState } from 'react';
+/*import React, { useState } from 'react';*/
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import axios from 'axios';
 
 function StaffLiquorScreen() {
   const navigate = useNavigate();
-  const [liquors, setLiquors] = useState([
+   // DB에서 가져온 주류 재고
+  const [liquors, setLiquors] = useState([]);
+
+  // Wine, Champagne만 관리
+  const liquorItems = ['Wine', 'Champagne'];
+
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/inventories')
+      .then(response => {
+        const formatted = response.data.map(item => ({
+          id: item.stockID,
+          name: item.itemName,              // 'Wine' 또는 'Champagne'
+          quantity: item.quantityAvailable,
+          unit: item.unit,
+          min: item.minQuantity,
+          status: item.status.toLowerCase(),
+          supplier: 'Next-door Liquor Shop' // 설명용 텍스트 (원하면 바꿔도 됨)
+        }));
+
+        // Wine / Champagne만 필터
+        const filtered = formatted.filter(item =>
+          liquorItems.includes(item.name)
+        );
+
+        setLiquors(filtered);
+      })
+      .catch(err => {
+        console.error('Liquor 재고 불러오기 실패:', err);
+      });
+  }, []);
+
+  // 수량 변경 + DB PATCH
+  const handleUpdateQuantity = async (id, newQuantity) => {
+    if (newQuantity < 0) return;
+
+    try {
+      await axios.patch(`http://localhost:8080/api/inventories/${id}/quantity`, {
+        quantity: newQuantity,
+      });
+
+      setLiquors(prev =>
+        prev.map(liquor =>
+          liquor.id === id ? { ...liquor, quantity: newQuantity } : liquor
+        )
+      );
+    } catch (error) {
+      console.error('주류 수량 업데이트 실패:', error);
+      alert('주류 수량 변경을 저장하지 못했습니다.');
+    }
+  };
+
+  const handleOrderMore = (id) => {
+    const target = liquors.find(l => l.id === id);
+    if (!target) return;
+    alert('Order placed for ' + target.name);
+  };
+
+  // 통계 계산
+const champagneCount = liquors
+  .filter(l => l.name === 'Champagne')
+  .reduce((sum, item) => sum + item.quantity, 0);
+
+const wineCount = liquors
+  .filter(l => l.name === 'Wine')
+  .reduce((sum, item) => sum + item.quantity, 0);
+
+// DB에 price 없음 → 일단 totalValue = 0
+const totalValue = 0;
+
+
+  /* 하드코팅 다 삭제
     {
       id: 1,
       name: 'Champagne - Moët & Chandon',
@@ -68,6 +140,7 @@ function StaffLiquorScreen() {
   const totalValue = liquors.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const champagneCount = liquors.filter(l => l.type === 'Champagne').reduce((sum, item) => sum + item.quantity, 0);
   const wineCount = liquors.filter(l => l.type === 'Wine').reduce((sum, item) => sum + item.quantity, 0);
+  */
 
   return (
     <div style={{
@@ -208,14 +281,14 @@ function StaffLiquorScreen() {
                 </p>
               </div>
               <span style={{
-                backgroundColor: liquor.type === 'Champagne' ? '#FFD700' : '#8B0000',
+                backgroundColor: liquor.name === 'Champagne' ? '#FFD700' : '#8B0000',
                 borderRadius: '6px',
                 padding: '4px 10px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                color: liquor.type === 'Champagne' ? '#000000' : '#FFFFFF'
+                color: liquor.name === 'Champagne' ? '#000000' : '#FFFFFF'
               }}>
-                {liquor.type}
+                {liquor.name}
               </span>
             </div>
 
