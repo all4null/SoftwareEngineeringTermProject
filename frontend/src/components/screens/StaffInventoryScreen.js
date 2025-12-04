@@ -82,7 +82,7 @@ function StaffInventoryScreen() {
 
       // 3. 요청이 성공하면 프론트엔드 화면(State)도 업데이트
       // (이때, 수량이 바뀌면 status도 변할 수 있으므로 간단한 상태 계산 로직을 추가하면 더 좋습니다)
-      setInventory(prevInventory => 
+      setInventory(prevInventory =>
         prevInventory.map(item => {
           if (item.id === id) {
             // 수량이 바뀌었으니 상태(Good/Low/Critical)도 프론트에서 미리 계산해서 보여줌 (UX 향상)

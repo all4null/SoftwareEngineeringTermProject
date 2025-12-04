@@ -36,6 +36,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security 의존성 추가
+	//implementation 'org.springframework.boot:spring-boot-starter-websocket' //실시간대화 웹소켓통신 의존성 추가 //HTTP로 일단 구현
 }
 
 tasks.named('test') {

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ public class OrderService {
     );
 
     @Transactional
+    //OrderRequestDto를 받아 Order을 생성하고 생성된 Order의 orderId를 반환함
     public Long createOrder(OrderRequestDto request) {
         // 1. 고객 조회
         User user = customerRepository.findById(request.getCustomerId())
@@ -116,6 +118,33 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return savedOrder.getOrderId(); // 생성된 주문의 ID 반환
+    }
+
+    // ChatOOrchestratorService가 호출하는 createOrder
+    public Long createOrderFromChat(Long customerId, String menuName, int quantity) {
+        
+        // 1. 메뉴 조회 (주문 서비스가 직접 함)
+        MenuItem menuItem = menuItemRepository.findByName(menuName)
+                .orElseThrow(() -> new IllegalArgumentException("메뉴를 찾을 수 없습니다: " + menuName));
+
+        // 2. 유저 조회 및 주소 확보
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("고객을 찾을 수 없습니다."));
+
+        // 3. DTO 내부 생성 (이 DTO가 바뀌어도 ChatService는 모름)
+        OrderRequestDto request = new OrderRequestDto();
+        request.setCustomerId(customerId);
+        request.setDeliveryAddress(customer.getAddress()); // 기본 주소 사용
+        request.setDinnerType(menuItem.getDinnerType());
+        
+        OrderRequestDto.OrderItemDto item = new OrderRequestDto.OrderItemDto();
+        item.setMenuItemId(menuItem.getId());
+        item.setQuantity(quantity);
+        
+        request.setItems(Collections.singletonList(item));
+
+        // 4. 기존 로직 재활용 (자기 자신의 메서드 호출)
+        return this.createOrder(request);
     }
 
     public List<OrderListResponseDto> getOrders(Long customerId) {
