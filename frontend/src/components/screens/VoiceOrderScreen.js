@@ -1,33 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../../App.css'; // 경로가 맞는지 확인해주세요!
+// import '../../App.css'; // 필요하다면 주석 해제
 
 function VoiceOrderScreen() {
   const navigate = useNavigate();
   
   // --- 상태 관리 ---
-  // 대화 기록을 저장할 배열 (초기값: AI의 첫 인사)
   const [messages, setMessages] = useState([
-    { sender: 'ai', text: '안녕하세요, OOO 고객님. 어떤 디너를 주문하시겠습니까?' }
+    { sender: 'ai', text: '안녕하세요, 미스터 대박입니다. 주문을 도와드릴까요?' }
   ]);
   
   const [isListening, setIsListening] = useState(false);
-  const [status, setStatus] = useState('Click mic to start'); 
+  const [status, setStatus] = useState('마이크를 눌러 말씀하세요'); 
   const [sessionId, setSessionId] = useState('');
-  const [orderSummary, setOrderSummary] = useState(''); // 현재 주문 요약
+  const [orderSummary, setOrderSummary] = useState(null); // 주문 요약 객체
 
   // 녹음 및 스크롤 관련 Refs
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const chatEndRef = useRef(null); // 자동 스크롤용
+  const chatEndRef = useRef(null);
 
   // 1. 접속 시 세션 ID 생성
   useEffect(() => {
     setSessionId(Math.random().toString(36).substring(7));
   }, []);
 
-  // 2. 메시지가 추가될 때마다 스크롤을 맨 아래로 내림
+  // 2. 자동 스크롤
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -46,56 +45,77 @@ function VoiceOrderScreen() {
       mediaRecorderRef.current.start();
       
       setIsListening(true);
-      setStatus('Listening... (말씀하세요)');
+      setStatus('듣고 있습니다... 🎧');
     } catch (err) {
       console.error("Mic Error:", err);
-      alert("마이크 사용 권한이 필요합니다.");
+      alert("마이크 사용 권한을 허용해주세요.");
     }
   };
 
   const handleStopListening = () => {
-    if (mediaRecorderRef.current) {
+    if (mediaRecorderRef.current && isListening) {
       mediaRecorderRef.current.stop();
+      setIsListening(false);
+      setStatus('AI가 생각 중입니다... 🤖');
     }
-    setIsListening(false);
-    setStatus('Processing... (분석 중)');
   };
 
+  // --- 서버 전송 로직 (핵심 수정됨) ---
   const sendAudioToServer = async () => {
+    if (audioChunksRef.current.length === 0) return;
+
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-    audioChunksRef.current = [];
+    audioChunksRef.current = []; // 초기화
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'voice.wav');
     formData.append('session_id', sessionId);
+    formData.append('customer_id', 1); // ★ [수정1] 백엔드 요구사항: 고객 ID 필수 추가
 
     try {
+      // Python 서버 주소 (5000번 포트)
       const res = await axios.post('http://localhost:5000/chat', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       const data = res.data;
-      const aiResponse = data.ai_response;
+      const aiJson = data.ai_response; // 백엔드가 보낸 JSON 객체
 
-      // 1. 사용자 말 추가
-      setMessages(prev => [...prev, { sender: 'user', text: data.user_text }]);
+      // ★ [수정2] 사용자 메시지(User Text)는 화면에 표시하지 않음 (요청사항 반영)
       
-      // 2. AI 답변 추가 (약간의 텀을 두고 자연스럽게)
-      setTimeout(() => {
-        setMessages(prev => [...prev, { sender: 'ai', text: aiResponse.response }]);
-      }, 500);
+      // 2. AI 답변 추가
+      if (aiJson && aiJson.response) {
+        setMessages(prev => [...prev, { sender: 'ai', text: aiJson.response }]);
+      }
 
-      setOrderSummary(aiResponse.current_order);
-      setStatus('Click mic to reply');
+      // 3. 주문 상태 업데이트 (updated_state 파싱)
+      if (aiJson && aiJson.updated_state) {
+        setOrderSummary(aiJson.updated_state);
+      }
 
-      if (aiResponse.is_finished) {
-        alert(`주문이 완료되었습니다!\n[최종 주문]: ${aiResponse.current_order}`);
+      setStatus('마이크를 눌러 대답하세요');
+
+      // 4. 주문 완료 처리
+      if (aiJson && aiJson.is_finished) {
+        setTimeout(() => {
+            alert("주문이 완료되었습니다! 잠시 후 홈으로 이동합니다.");
+            navigate('/customer-home'); // 주문 완료 후 이동
+        }, 1000);
       }
 
     } catch (error) {
       console.error(error);
-      setStatus('Error: 서버 연결 실패');
+      setStatus('❌ 서버 연결 실패 (Python 서버를 확인하세요)');
     }
+  };
+
+  // --- 주문 요약 텍스트 포맷팅 함수 ---
+  const formatOrderSummary = (state) => {
+    if (!state) return "주문 내역 없음";
+    const dinner = state.dinnerType ? state.dinnerType.toUpperCase() : "선택 안됨";
+    const style = state.servingStyle ? state.servingStyle.toUpperCase() : "선택 안됨";
+    const itemCount = state.items ? state.items.length : 0;
+    return `${dinner} 디너 / ${style} 스타일 / 추가메뉴: ${itemCount}개`;
   };
 
   return (
@@ -104,12 +124,12 @@ function VoiceOrderScreen() {
       minHeight: '100vh',
       padding: '20px',
       display: 'flex',
-      flexDirection: 'column', // 세로 정렬
+      flexDirection: 'column',
       alignItems: 'center',
     }}>
       <div style={{ maxWidth: '500px', width: '100%' }}>
         
-        {/* 헤더 (뒤로가기 & 제목) */}
+        {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
           <button
             onClick={() => navigate('/customer-home')}
@@ -125,88 +145,74 @@ function VoiceOrderScreen() {
           </h1>
         </div>
 
-        {/* 현재 주문 상태 바 (추가됨) */}
-        {orderSummary && (
-          <div style={{
-            backgroundColor: '#333', padding: '10px', borderRadius: '8px',
-            marginBottom: '20px', color: '#FFC107', fontSize: '14px', textAlign: 'center'
-          }}>
-            🛒 현재 주문: {orderSummary}
-          </div>
-        )}
+        {/* 🛒 실시간 주문 상태 바 (데이터 연동됨) */}
+        <div style={{
+            backgroundColor: '#333', padding: '15px', borderRadius: '12px',
+            marginBottom: '20px', border: '1px solid #FFC107',
+            color: '#FFC107', fontSize: '14px', textAlign: 'center',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+        }}>
+            <strong style={{ display:'block', marginBottom:'5px', color:'white'}}>Current Order</strong>
+            {formatOrderSummary(orderSummary)}
+        </div>
 
-        {/* 💬 대화 내용 표시 영역 (스크롤 가능하게 변경됨) */}
+        {/* 💬 대화 내용 (AI 메시지만 표시됨) */}
         <div style={{
           backgroundColor: '#2a2a2a',
           borderRadius: '15px',
           padding: '20px',
           marginBottom: '30px',
-          height: '400px',       // 높이 고정
-          overflowY: 'auto',     // 내용 많으면 스크롤
+          height: '400px',
+          overflowY: 'auto',
           borderLeft: '4px solid #FFC107'
         }}>
           {messages.map((msg, index) => (
             <div key={index} style={{ 
               marginBottom: '15px', 
-              textAlign: msg.sender === 'user' ? 'right' : 'left' 
+              textAlign: 'left' // AI 메시지는 항상 왼쪽
             }}>
-              <p style={{ 
-                fontSize: '12px', 
-                color: msg.sender === 'user' ? '#b0b0b0' : '#FF6B6B', 
-                marginBottom: '5px' 
-              }}>
-                {msg.sender === 'user' ? 'YOU' : 'AI WAITER'}
+              <p style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '5px', fontWeight:'bold' }}>
+                AI WAITER
               </p>
               <div style={{
                 display: 'inline-block',
-                padding: '10px 15px',
-                borderRadius: '15px',
-                backgroundColor: msg.sender === 'user' ? '#444' : '#FFC107',
-                color: msg.sender === 'user' ? '#FFF' : '#000',
+                padding: '12px 18px',
+                borderRadius: '0px 15px 15px 15px', // 말풍선 모양
+                backgroundColor: '#FFC107',
+                color: '#000',
                 fontSize: '16px',
                 fontWeight: 'bold',
-                maxWidth: '80%',
-                lineHeight: '1.5'
+                maxWidth: '90%',
+                lineHeight: '1.5',
+                boxShadow: '2px 2px 5px rgba(0,0,0,0.2)'
               }}>
                 {msg.text}
               </div>
             </div>
           ))}
-          {/* 자동 스크롤을 위한 투명한 바닥 */}
           <div ref={chatEndRef} />
         </div>
 
-        {/* 🎤 마이크 버튼 (기존 디자인 유지) */}
+        {/* 🎤 마이크 버튼 */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <button
-            // 클릭 한 번으로 시작/종료 (토글)
             onClick={isListening ? handleStopListening : handleStartListening}
             style={{
-              width: '100px', height: '100px', borderRadius: '50%',
-              border: 'none', backgroundColor: isListening ? '#FF6B6B' : '#FFC107',
-              cursor: 'pointer', fontSize: '40px',
-              boxShadow: isListening ? '0 0 15px #FF6B6B' : 'none',
-              transition: 'all 0.3s'
+              width: '90px', height: '90px', borderRadius: '50%',
+              border: '4px solid #1a1a1a', 
+              backgroundColor: isListening ? '#FF6B6B' : '#FFC107',
+              cursor: 'pointer', fontSize: '36px',
+              boxShadow: isListening ? '0 0 20px #FF6B6B' : '0 0 10px #FFC107',
+              transition: 'all 0.2s',
+              transform: isListening ? 'scale(1.1)' : 'scale(1)'
             }}
           >
             {isListening ? '⏹️' : '🎙️'}
           </button>
-          <p style={{ marginTop: '10px', fontSize: '14px', color: '#b0b0b0' }}>
+          <p style={{ marginTop: '15px', fontSize: '15px', color: '#b0b0b0', fontWeight: '500' }}>
             {status}
           </p>
         </div>
-
-        {/* 하단 버튼 */}
-        <button
-          onClick={() => navigate('/customer-home')}
-          style={{
-            width: '100%', padding: '15px', borderRadius: '10px',
-            backgroundColor: '#444', color: 'white', border: 'none',
-            fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          Cancel / 나가기
-        </button>
 
       </div>
     </div>
