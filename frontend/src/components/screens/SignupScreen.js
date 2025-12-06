@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import axios from 'axios'; //백엔드로 요청을 보내기위한 axios 임포트
+import { API_BASE_URL } from '../../config';
 
 //백엔드 주소
-const BACKEND_URL = 'http://localhost:8080/api/auth/login';
+// const BACKEND_URL = `${API_BASE_URL}/api/auth/login`;
 
 
 function SignupScreen() {
@@ -64,7 +65,7 @@ function SignupScreen() {
     // localStorage활용 가입 로직
     // // 고객 정보 저장
     // const customers = JSON.parse(localStorage.getItem('customers') || '[]');
-    
+
     // // 이미 존재하는 이메일 확인
     // if (customers.find(c => c.email === formData.email)) {
     //   setError('This email is already registered');
@@ -85,12 +86,12 @@ function SignupScreen() {
     //   discountRate: 0 // 초기 할인율
     // };
 
-      // customers.push(newCustomer);
-      // localStorage.setItem('customers', JSON.stringify(customers));
+    // customers.push(newCustomer);
+    // localStorage.setItem('customers', JSON.stringify(customers));
 
     // 백엔드로 회원가입 정보 전송
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/signup', {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/signup`, {
         id: Date.now(),
         name: formData.name,
         email: formData.email,
@@ -259,7 +260,7 @@ function SignupScreen() {
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
               onKeyPress={(e) => {
-                 if (e.key === 'Enter') {
+                if (e.key === 'Enter') {
                   handleSignup();
                 }
               }}

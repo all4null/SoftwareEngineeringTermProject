@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import '../../App.css';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 
 function OrderCustomizationScreen() {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ function OrderCustomizationScreen() {
         setLoading(true);
 
         // A. 기본 구성품 조회 (dinnerType에 맞는 것만)
-        const baseRes = await axios.get(`http://localhost:8080/api/menu-items`, {
+        const baseRes = await axios.get(`${API_BASE_URL}/api/menu-items`, {
           params: { type: dinnerType, isBaseItem: true }
         });
 
@@ -92,7 +93,7 @@ function OrderCustomizationScreen() {
         setItems(mappedBaseItems);
 
         // B. 추가 메뉴(Add-on) 조회
-        const addonRes = await axios.get(`http://localhost:8080/api/menu-items`, {
+        const addonRes = await axios.get(`${API_BASE_URL}/api/menu-items`, {
           params: { isBaseItem: false }
         });
 
@@ -116,7 +117,7 @@ function OrderCustomizationScreen() {
       setCurrentUser(user);
       try {
         // 고객 등급 정보 불러오기
-        const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
+        const customerTierRes = await axios.get(`${API_BASE_URL}/api/customers/${user.id}`);
         const customerTierData = customerTierRes.data;
         setCustomerTier({
           name: customerTierData.tierName,       // 예: "GOLD"
@@ -235,7 +236,7 @@ function OrderCustomizationScreen() {
     };
 
     try {
-      const response = await axios.post('http://localhost:8080/api/orders', orderPayload);
+      const response = await axios.post(`${API_BASE_URL}/api/orders`, orderPayload);
       if (response.status === 200 || response.status === 201) {
         alert(`Order confirmed! Order ID: ${response.data}`);
         navigate(`/order-details/${response.data}`); // 백엔드가 준 ID로 이동

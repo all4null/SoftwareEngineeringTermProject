@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import axios from 'axios'; //백엔드로 요청을 보내기위한 axios 임포트
+import { API_BASE_URL } from '../../config';
 
 //백엔드 주소
-const BACKEND_URL = 'http://localhost:8080/api/auth/login';
+const BACKEND_URL = `${API_BASE_URL}/api/auth/login`;
 
 function LoginScreen() {
   const navigate = useNavigate();

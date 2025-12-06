@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../../App.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { data } from 'autoprefixer';
 
 function OrderDetailsScreen() {
@@ -58,7 +59,7 @@ function OrderDetailsScreen() {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+        const response = await axios.get(`${API_BASE_URL}/api/orders/${orderId}`);
         setOrder(response.data);
         //console.log('Fetched order details:', response.data);
         //console.log(order.driverName)

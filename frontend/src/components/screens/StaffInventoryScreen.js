@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import { useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 
 function StaffInventoryScreen() {
   const navigate = useNavigate();
@@ -10,10 +11,10 @@ function StaffInventoryScreen() {
 
   //추가: 4가지 메뉴의 기본 재료들만 정의 (liquor는 나중에 따로 관리)
   const baseItems2_origin = ['Steak', 'Coffee', 'Salad', 'Scrambled Egg', 'Bacon', 'Bread', 'Heart Decoration', 'Napkin', 'Baguette (4)'];
-  const baseItems = ['Beef',"Chicken", "Fish","Salmon","Vegetables",/*"Champagne","Wine",*/"Caviar","Heart decoration plate","Napkin","Coffee Beans","Salad Mix","eggs","Bacon","Bread Slices",'Baguette']
-  
+  const baseItems = ['Beef', "Chicken", "Fish", "Salmon", "Vegetables",/*"Champagne","Wine",*/"Caviar", "Heart decoration plate", "Napkin", "Coffee Beans", "Salad Mix", "eggs", "Bacon", "Bread Slices", 'Baguette']
+
   useEffect(() => {
-    axios.get('http://localhost:8080/api/inventories')
+    axios.get(`${API_BASE_URL}/api/inventories`)
       .then(response => {
         //임시 테스트용 치워도 됨
         //console.log('백엔드 응답:', response.data);
@@ -26,9 +27,9 @@ function StaffInventoryScreen() {
           unit: item.unit,
           min: item.minQuantity,      // 백엔드 minQuantity -> 프론트 min
           status: item.status.toLowerCase(), // 대문자(Good) -> 소문자(good)
-          usedInMenus : item.usedInMenus
+          usedInMenus: item.usedInMenus
         }));
-        
+
         // baseItems에 있는 것들만
         const filteredData = formattedData.filter(item => baseItems.includes(item.name));
         //임시 테스트용 치워도 됨
@@ -79,7 +80,7 @@ function StaffInventoryScreen() {
     try {
       // 2. 백엔드에 PATCH 요청 보내기 (DB 업데이트)
       // Controller가 받는 형태: { "quantity": 50 }
-      await axios.patch(`http://localhost:8080/api/inventories/${id}/quantity`, {
+      await axios.patch(`${API_BASE_URL}/api/inventories/${id}/quantity`, {
         quantity: newQuantity
       });
 
@@ -222,7 +223,7 @@ function StaffInventoryScreen() {
                 </div>
               </div>
 
-              
+
               <div style={{
                 backgroundColor: getStatusColor(item.status),
                 borderRadius: '6px',

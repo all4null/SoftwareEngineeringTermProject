@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import '../../App.css';
 
 function MenuDetailsScreen() {
@@ -42,7 +43,7 @@ function MenuDetailsScreen() {
     const fetchBaseMenuItems = async () => {
       try {
         // DB에서 해당 디너 타입의 "기본 구성품(Base Items)"을 조회
-        const response = await axios.get(`http://localhost:8080/api/menu-items`, {
+        const response = await axios.get(`${API_BASE_URL}/api/menu-items`, {
           params: { type: dinnerType, isBaseItem: true }
         });
 
@@ -267,7 +268,7 @@ function MenuDetailsScreen() {
 
       // ✅ Backend API로 주문 전송
       const response = await axios.post(
-        'http://localhost:8080/api/orders',
+        `${API_BASE_URL}/api/orders`,
         orderPayload
       );
 

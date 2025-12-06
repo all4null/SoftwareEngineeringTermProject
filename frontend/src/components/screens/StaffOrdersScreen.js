@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import '../../App.css';
 
 function StaffOrdersScreen() {
@@ -38,7 +39,7 @@ function StaffOrdersScreen() {
 
       // ✅ Backend에서 모든 주문 조회
       const response = await axios.get(
-        'http://localhost:8080/api/staff-orders'
+        `${API_BASE_URL}/api/staff-orders`
       );
 
       // 받은 주문 데이터 저장
@@ -73,7 +74,7 @@ function StaffOrdersScreen() {
 
       // ✅ Backend에 상태 업데이트 요청
       await axios.patch(
-        `http://localhost:8080/api/staff-orders/${orderId}/status`,
+        `${API_BASE_URL}/api/staff-orders/${orderId}/status`,
         {
           status: newStatus,
           staffId: staffId,

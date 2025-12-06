@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 
 function StaffLiquorScreen() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function StaffLiquorScreen() {
   const liquorItems = ['Wine', 'Champagne'];
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/inventories')
+    axios.get(`${API_BASE_URL}/api/inventories`)
       .then(response => {
         const formatted = response.data.map(item => ({
           id: item.stockID,
@@ -43,7 +44,7 @@ function StaffLiquorScreen() {
     if (newQuantity < 0) return;
 
     try {
-      await axios.patch(`http://localhost:8080/api/inventories/${id}/quantity`, {
+      await axios.patch(`${API_BASE_URL}/api/inventories/${id}/quantity`, {
         quantity: newQuantity,
       });
 
@@ -80,7 +81,7 @@ function StaffLiquorScreen() {
     // -> 이제 상대적인 증가량만 서버로 보냅니다.
 
     try {
-      await axios.post(`http://localhost:8080/api/inventories/${target.id}/add`, {
+      await axios.post(`${API_BASE_URL}/api/inventories/${target.id}/add`, {
         amount: addAmount
       });
 

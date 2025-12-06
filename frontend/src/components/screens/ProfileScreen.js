@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 
 function ProfileScreen() {
   const navigate = useNavigate();
@@ -13,38 +14,38 @@ function ProfileScreen() {
 
   useEffect(() => {
     loadCustomerData();
-    }, []);
+  }, []);
 
-    const loadCustomerData = async () => {
-    
+  const loadCustomerData = async () => {
+
     const user = JSON.parse(localStorage.getItem('currentUser'));
     setCurrentUser(user);
 
     try {
-    // 고객의 모든 주문 불러오기, 백엔드의 OrderListResponseDTO 사용
-    const response = await axios.get(`http://localhost:8080/api/orders?customerId=${user.id}`);
-    setOrders(response.data); // 받아온 데이터를 상태에 저장
-    
-    // 고객 등급 정보 불러오기
-    const customerTierRes = await axios.get(`http://localhost:8080/api/customers/${user.id}`);
-    const customerTierData = customerTierRes.data;
-    setCustomerTier({
+      // 고객의 모든 주문 불러오기, 백엔드의 OrderListResponseDTO 사용
+      const response = await axios.get(`${API_BASE_URL}/api/orders?customerId=${user.id}`);
+      setOrders(response.data); // 받아온 데이터를 상태에 저장
+
+      // 고객 등급 정보 불러오기
+      const customerTierRes = await axios.get(`${API_BASE_URL}/api/customers/${user.id}`);
+      const customerTierData = customerTierRes.data;
+      setCustomerTier({
         name: customerTierData.tierName,       // 예: "GOLD"
         discountRate: customerTierData.discountRate, // 예: 15
         icon: customerTierData.tierIcon        // 예: "🥇"
       });
-    
 
-    // // 등급 계산 (주문 개수 기반)
-    // const tier = calculateTier(response.data.length);
-    // setCustomerTier(tier);
-    // } catch (error) {
-    //     console.error("Failed to load orders", error);
-    // }
-  } catch (error) {
+
+      // // 등급 계산 (주문 개수 기반)
+      // const tier = calculateTier(response.data.length);
+      // setCustomerTier(tier);
+      // } catch (error) {
+      //     console.error("Failed to load orders", error);
+      // }
+    } catch (error) {
       console.error("Failed to load customer data", error);
     }
-};
+  };
 
   const handleSaveProfile = () => {
     // 고객 정보 업데이트
@@ -54,7 +55,7 @@ function ProfileScreen() {
     );
     localStorage.setItem('customers', JSON.stringify(updatedCustomers));
     localStorage.setItem('currentUser', JSON.stringify({ ...currentUser, ...editData }));
-    
+
     setCurrentUser({ ...currentUser, ...editData });
     setIsEditing(false);
     alert('Profile updated successfully!');
@@ -109,12 +110,12 @@ function ProfileScreen() {
             padding: '20px',
             marginBottom: '20px',
             textAlign: 'center',
-            borderLeft: 
+            borderLeft:
               customerTier.name === 'Platinum' ? '4px solid #E5E4E2' :
-              customerTier.name === 'Gold' ? '4px solid #FFD700' :
-              customerTier.name === 'Silver' ? '4px solid #C0C0C0' :
-              customerTier.name === 'Bronze' ? '4px solid #CD7F32' :
-              '4px solid #FFC107'
+                customerTier.name === 'Gold' ? '4px solid #FFD700' :
+                  customerTier.name === 'Silver' ? '4px solid #C0C0C0' :
+                    customerTier.name === 'Bronze' ? '4px solid #CD7F32' :
+                      '4px solid #FFC107'
           }}>
             <p style={{ fontSize: '48px', marginBottom: '10px' }}>
               {customerTier.icon}
