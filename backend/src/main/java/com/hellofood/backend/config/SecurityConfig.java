@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -42,7 +43,7 @@ public class SecurityConfig {
                     chain.doFilter(request, response);
                 }, ChannelProcessingFilter.class)
 
-                
+
                 // CORS 활성화 및 설정 등록
                 .cors(Customizer.withDefaults())
 
