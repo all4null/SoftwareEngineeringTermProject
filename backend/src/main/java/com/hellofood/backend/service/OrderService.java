@@ -41,6 +41,18 @@ public class OrderService {
                 User user = customerRepository.findById(request.getCustomerId())
                                 .orElseThrow(() -> new IllegalArgumentException("Invalid customer ID"));
 
+                String addressToUse = request.getDeliveryAddress();
+
+                // 요청에 주소가 없으면(null), 고객 정보에 있는 주소를 가져와서 사용
+                if (addressToUse == null || addressToUse.trim().isEmpty()) {
+                        addressToUse = ((Customer) user).getAddress(); // Customer로 형변환 필요할 수 있음
+                }
+
+                // 만약 그래도 주소가 없으면 에러 (DB 제약조건 위반 방지)
+                if (addressToUse == null) {
+                        throw new IllegalArgumentException("Delivery address is required.");
+                }
+
                 String style = request.getServingStyle() != null ? request.getServingStyle() : "simple";
 
                 // [Constraint] Champagne Feast cannot be ordered in Simple style
@@ -49,16 +61,17 @@ public class OrderService {
                                         "Champagne Feast Dinner cannot be ordered in Simple style. Please choose Grand or Deluxe.");
                 }
 
+                int dinnerQuantity = request.getQuantity() == 0 ? 1 : request.getQuantity();
                 // 2. 기본 가격 계산 (PricingService 위임)
                 BigDecimal totalPrice = pricingService.calculateBaseOrderPrice(
                                 request.getDinnerType(),
                                 style,
-                                request.getQuantity());
+                                dinnerQuantity);
 
                 // 3. 주문 객체 생성
                 Order order = new Order(
                                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                request.getDeliveryAddress(),
+                                addressToUse,
                                 0, // request count (임시)
                                 Order.OrderStatus.PENDING, // 초기 상태
                                 BigDecimal.ZERO, // 나중에 업데이트
