@@ -44,6 +44,8 @@ public class SecurityConfig {
 
                 // 인가(Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
+                        // 모든 경로 인증 없이 허용 (개발용)
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().permitAll());
 
         return http.build();
