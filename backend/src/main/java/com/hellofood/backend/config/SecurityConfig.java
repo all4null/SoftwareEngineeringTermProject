@@ -55,12 +55,14 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 콤마로 구분된 여러 도메인 허용
-        if (frontendUrls != null) {
-            String[] origins = frontendUrls.split(",");
-            for (String origin : origins) {
-                configuration.addAllowedOrigin(origin.trim());
-            }
-        }
+        // 모든 출처 허용 (Credentials true일 때 allowedOrigins("*")는 불가능하므로 Patterns 사용)
+        configuration.addAllowedOriginPattern("*");
+        // if (frontendUrls != null) {
+        // String[] origins = frontendUrls.split(",");
+        // for (String origin : origins) {
+        // configuration.addAllowedOrigin(origin.trim());
+        // }
+        // }
 
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
