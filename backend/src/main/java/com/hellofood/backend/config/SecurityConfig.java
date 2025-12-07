@@ -31,7 +31,18 @@ public class SecurityConfig {
     // 2. Spring Security 필터 체인 설정
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        http    
+
+                // [핵심] PNA(Private Network Access) 헤더를 강제로 넣어주는 필터 추가
+                // CORS 필터보다 먼저 실행되도록 설정하여 Preflight 요청에도 헤더가 물리게 함
+                .addFilterBefore((request, response, chain) -> {
+                    HttpServletResponse res = (HttpServletResponse) response;
+                    // "이 서버는 사설망에 있지만 접근을 허용한다"는 명시적 선언
+                    res.setHeader("Access-Control-Allow-Private-Network", "true");
+                    chain.doFilter(request, response);
+                }, ChannelProcessingFilter.class)
+
+                
                 // CORS 활성화 및 설정 등록
                 .cors(Customizer.withDefaults())
 
@@ -56,6 +67,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+    
         // 콤마로 구분된 여러 도메인 허용
         // 모든 출처 허용 (Credentials true일 때 allowedOrigins("*")는 불가능하므로 Patterns 사용)
         configuration.addAllowedOriginPattern("*");
@@ -69,6 +81,10 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
+
+
+        configuration.addAllowedHeader("Access-Control-Request-Private-Network");
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
