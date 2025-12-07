@@ -14,7 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +41,7 @@ public class SecurityConfig {
                     // "이 서버는 사설망에 있지만 접근을 허용한다"는 명시적 선언
                     res.setHeader("Access-Control-Allow-Private-Network", "true");
                     chain.doFilter(request, response);
-                }, ChannelProcessingFilter.class)
+                }, CorsFilter.class)
 
 
                 // CORS 활성화 및 설정 등록
