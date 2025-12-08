@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { PYTHON_SERVER_URL } from '../../config';
 // import '../../App.css'; // 필요하다면 주석 해제
 
 function VoiceOrderScreen() {
   const navigate = useNavigate();
-  
+
   // --- 상태 관리 ---
   const [messages, setMessages] = useState([
     { sender: 'ai', text: '안녕하세요, 미스터 대박입니다. 주문을 도와드릴까요?' }
   ]);
-  
+
   const [isListening, setIsListening] = useState(false);
-  const [status, setStatus] = useState('마이크를 눌러 말씀하세요'); 
+  const [status, setStatus] = useState('마이크를 눌러 말씀하세요');
   const [sessionId, setSessionId] = useState('');
   const [orderSummary, setOrderSummary] = useState(null); // 주문 요약 객체
 
@@ -36,14 +37,14 @@ function VoiceOrderScreen() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
-      
+
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current.onstop = sendAudioToServer;
       mediaRecorderRef.current.start();
-      
+
       setIsListening(true);
       setStatus('듣고 있습니다... 🎧');
     } catch (err) {
@@ -74,7 +75,8 @@ function VoiceOrderScreen() {
 
     try {
       // Python 서버 주소 (5000번 포트)
-      const res = await axios.post('http://localhost:5000/chat', formData, {
+      // config.js에서 가져옴
+      const res = await axios.post(`${PYTHON_SERVER_URL}/chat`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -82,7 +84,7 @@ function VoiceOrderScreen() {
       const aiJson = data.ai_response; // 백엔드가 보낸 JSON 객체
 
       // ★ [수정2] 사용자 메시지(User Text)는 화면에 표시하지 않음 (요청사항 반영)
-      
+
       // 2. AI 답변 추가
       if (aiJson && aiJson.response) {
         setMessages(prev => [...prev, { sender: 'ai', text: aiJson.response }]);
@@ -98,8 +100,8 @@ function VoiceOrderScreen() {
       // 4. 주문 완료 처리
       if (aiJson && aiJson.is_finished) {
         setTimeout(() => {
-            alert("주문이 완료되었습니다! 잠시 후 홈으로 이동합니다.");
-            navigate('/customer-home'); // 주문 완료 후 이동
+          alert("주문이 완료되었습니다! 잠시 후 홈으로 이동합니다.");
+          navigate('/customer-home'); // 주문 완료 후 이동
         }, 1000);
       }
 
@@ -128,7 +130,7 @@ function VoiceOrderScreen() {
       alignItems: 'center',
     }}>
       <div style={{ maxWidth: '500px', width: '100%' }}>
-        
+
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
           <button
@@ -147,13 +149,13 @@ function VoiceOrderScreen() {
 
         {/* 🛒 실시간 주문 상태 바 (데이터 연동됨) */}
         <div style={{
-            backgroundColor: '#333', padding: '15px', borderRadius: '12px',
-            marginBottom: '20px', border: '1px solid #FFC107',
-            color: '#FFC107', fontSize: '14px', textAlign: 'center',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+          backgroundColor: '#333', padding: '15px', borderRadius: '12px',
+          marginBottom: '20px', border: '1px solid #FFC107',
+          color: '#FFC107', fontSize: '14px', textAlign: 'center',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
         }}>
-            <strong style={{ display:'block', marginBottom:'5px', color:'white'}}>Current Order</strong>
-            {formatOrderSummary(orderSummary)}
+          <strong style={{ display: 'block', marginBottom: '5px', color: 'white' }}>Current Order</strong>
+          {formatOrderSummary(orderSummary)}
         </div>
 
         {/* 💬 대화 내용 (AI 메시지만 표시됨) */}
@@ -167,11 +169,11 @@ function VoiceOrderScreen() {
           borderLeft: '4px solid #FFC107'
         }}>
           {messages.map((msg, index) => (
-            <div key={index} style={{ 
-              marginBottom: '15px', 
+            <div key={index} style={{
+              marginBottom: '15px',
               textAlign: 'left' // AI 메시지는 항상 왼쪽
             }}>
-              <p style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '5px', fontWeight:'bold' }}>
+              <p style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '5px', fontWeight: 'bold' }}>
                 AI WAITER
               </p>
               <div style={{
@@ -199,7 +201,7 @@ function VoiceOrderScreen() {
             onClick={isListening ? handleStopListening : handleStartListening}
             style={{
               width: '90px', height: '90px', borderRadius: '50%',
-              border: '4px solid #1a1a1a', 
+              border: '4px solid #1a1a1a',
               backgroundColor: isListening ? '#FF6B6B' : '#FFC107',
               cursor: 'pointer', fontSize: '36px',
               boxShadow: isListening ? '0 0 20px #FF6B6B' : '0 0 10px #FFC107',

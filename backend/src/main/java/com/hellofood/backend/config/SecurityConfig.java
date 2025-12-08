@@ -14,6 +14,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.filter.CorsFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +34,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+
+                // [핵심] PNA(Private Network Access) 헤더를 강제로 넣어주는 필터 추가
+                // CORS 필터보다 먼저 실행되도록 설정하여 Preflight 요청에도 헤더가 물리게 함
+                .addFilterBefore((request, response, chain) -> {
+                    HttpServletResponse res = (HttpServletResponse) response;
+                    // "이 서버는 사설망에 있지만 접근을 허용한다"는 명시적 선언
+                    res.setHeader("Access-Control-Allow-Private-Network", "true");
+                    chain.doFilter(request, response);
+                }, CorsFilter.class)
+
                 // CORS 활성화 및 설정 등록
                 .cors(Customizer.withDefaults())
 
@@ -69,6 +81,8 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
+
+        configuration.addAllowedHeader("Access-Control-Request-Private-Network");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
